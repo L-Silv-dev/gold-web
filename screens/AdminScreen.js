@@ -740,7 +740,7 @@ const AdminScreen = ({ onLogout, setCurrentScreen }) => {
           directionalLockEnabled={false}
           alwaysBounceVertical={true}
           bounces={true}
-          style={{ flex: 1, width: '100%' }}
+          style={{ flex: 1, width: '100%', ...(Platform.OS === 'web' ? { overflow: 'auto' } : {}) }}
         >
           <TouchableWithoutFeedback>
             <View style={{ width: '100%' }}>
