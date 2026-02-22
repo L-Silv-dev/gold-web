@@ -790,7 +790,7 @@ function MainApp({ onLogout }) {
         flexDirection: 'column', 
         backgroundColor: theme.background, 
         paddingTop: Platform.OS === 'web' ? 0 : -20,
-        marginLeft: Platform.OS === 'web' ? Math.max(64, Math.min(96, Math.floor((typeof window !== 'undefined' ? window.innerWidth : 800) * 0.08))) : 0,
+        marginLeft: Platform.OS === 'web' ? 56 : 0,
         overflow: Platform.OS === 'web' ? 'auto' : 'visible'
       }}>
       

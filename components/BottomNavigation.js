@@ -9,7 +9,7 @@ const { width } = Dimensions.get('window');
 export default function BottomNavigation({ setCurrentScreen, onPressAdmin, currentScreen }) {
   const { theme } = useThemeContext();
   const { unreadCount } = useUserContext();
-  const SIDEBAR_WIDTH = Math.max(64, Math.min(96, Math.floor(width * 0.08)));
+  const SIDEBAR_WIDTH = 56;
 
   useEffect(() => {
     if (Platform.OS === 'web') {
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 80,
+    width: 56,
     borderRightWidth: 1,
     zIndex: 1000,
     justifyContent: 'flex-start',
