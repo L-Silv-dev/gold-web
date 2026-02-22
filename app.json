@@ -1,0 +1,99 @@
+{
+  "expo": {
+    "name": "Gideon",
+    "slug": "Gideon",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#6366f1"
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "scheme": "goldapp",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sirlucasilvasta.MeuApp",
+      "associatedDomains": [
+        "applinks:goldapp.com"
+      ],
+      "infoPlist": {
+        "NSCameraUsageDescription": "Este app precisa acessar a câmera para tirar fotos para as postagens.",
+        "NSPhotoLibraryUsageDescription": "Este app precisa acessar a galeria para selecionar imagens."
+      }
+    },
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      "package": "com.sirlucasilvasta.MeuApp",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "goldapp.com",
+              "pathPrefix": "/reset-password"
+            }
+          ],
+          "category": [
+            "BROWSER",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "goldapp"
+            }
+          ],
+          "category": [
+            "BROWSER",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/icon.png",
+      "bundler": "metro",
+      "name": "Gideon",
+      "shortName": "Gideon",
+      "description": "App de gerenciamento escolar",
+      "backgroundColor": "#ffffff",
+      "themeColor": "#6366f1",
+      "display": "standalone",
+      "startUrl": "/",
+      "meta": {
+        "google-site-verification": "JpdGWPZP99zej0Kmzu7MrhlOiHQRinXT45-zjGviZPo"
+      }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3b3a9270-5750-408b-b5d4-fce5d4213d02"
+      }
+    },
+    "owner": "sirlucasilvasta"
+  }
+}
