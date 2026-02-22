@@ -1135,7 +1135,7 @@ const StatisticsScreen = ({ setCurrentScreen }) => {
           contentContainerStyle={[styles.scrollContent, { minHeight: '100%' }]}
           showsVerticalScrollIndicator={true}
           keyboardShouldPersistTaps="handled"
-          style={{ flex: 1, width: '100%' }}
+          style={{ flex: 1, width: '100%', ...(Platform.OS === 'web' ? { overflow: 'auto' } : {}) }}
           refreshControl={Platform.OS !== 'web' ? (
             <RefreshControl
               refreshing={refreshing}
