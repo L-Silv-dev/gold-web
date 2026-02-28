@@ -85,6 +85,8 @@ const HomeScreen = ({ refreshKey = 0, setCurrentScreen }) => {
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [allVideos, setAllVideos] = useState([]);
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
+  const [videoAspect, setVideoAspect] = useState({}); // key -> aspectRatio
+  const [imageAspect, setImageAspect] = useState({}); // key -> aspectRatio
 
   // Buscar usuário atual ao carregar o componente
   useEffect(() => {
@@ -651,6 +653,18 @@ const HomeScreen = ({ refreshKey = 0, setCurrentScreen }) => {
                               renderItem={({ item: video, index }) => {
                                 const videoKey = `${item.id}-${video.id || index}`;
                                 const isPlaying = playingVideos[videoKey];
+                                let aspect = videoAspect[videoKey] || 16/9;
+                                
+                                // Para Web: tentar usar thumbnail para detectar proporção, se ainda não definida
+                                if (Platform.OS === 'web' && !videoAspect[videoKey] && video.thumbnail_url) {
+                                  try {
+                                    Image.getSize(video.thumbnail_url, (w, h) => {
+                                      if (w > 0 && h > 0) {
+                                        setVideoAspect(prev => ({ ...prev, [videoKey]: w / h }));
+                                      }
+                                    }, () => {});
+                                  } catch {}
+                                }
                                 
                                 return (
                                   <VideoTouchOverlay
@@ -660,67 +674,58 @@ const HomeScreen = ({ refreshKey = 0, setCurrentScreen }) => {
                                       item.is_liked || false, 
                                       item.like_count || 0
                                     )}
-                                    style={{ width: SCREEN_WIDTH, backgroundColor: '#000' }}
+                                    style={{ width: '100%', backgroundColor: '#000' }}
                                   >
                                   {Platform.OS === 'web' ? (
-                                    (() => {
-                                      const vw = typeof window !== 'undefined' ? window.innerWidth : SCREEN_WIDTH;
-                                      const w = Math.min(640, Math.max(280, Math.floor(vw * 0.8)));
-                                      const h = Math.floor(w * 9 / 16);
-                                      return (
-                                        <TouchableOpacity activeOpacity={0.9} onPress={() => { try { window.open(video.video_url, '_blank', 'noopener'); } catch {} }}>
-                                          <View style={{ width: w, height: h, borderRadius: 10, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
-                                            <Ionicons name="play" size={Math.max(24, Math.floor(w * 0.07))} color="#fff" />
-                                          </View>
-                                        </TouchableOpacity>
-                                      );
-                                    })()
+                                    <TouchableOpacity
+                                      activeOpacity={0.9}
+                                      onPress={() => { try { window.open(video.video_url, '_blank', 'noopener'); } catch {} }}
+                                    >
+                                      <View
+                                        style={{
+                                          width: '100%',
+                                          aspectRatio: aspect,
+                                          borderRadius: 10,
+                                          backgroundColor: '#000',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          overflow: 'hidden'
+                                        }}
+                                      >
+                                        <Ionicons name="play" size={48} color="#fff" />
+                                      </View>
+                                    </TouchableOpacity>
                                   ) : (
                                     <ModernVideoPlayer
                                       source={{ uri: video.video_url }}
                                       style={{ 
-                                        width: '100%', 
-                                        height: SCREEN_WIDTH * 1.25,
+                                        width: '100%',
+                                        aspectRatio: aspect,
+                                        backgroundColor: '#000'
                                       }}
                                       resizeMode={ResizeMode.COVER}
                                       isLooping={true}
                                       shouldPlay={true}
                                       initialMuted={true}
                                       showMuteButton={video.has_audio !== false}
+                                      onPlaybackStatusUpdate={(status) => {
+                                        // Detectar tamanho natural e salvar a proporção
+                                        const w = status?.naturalSize?.width;
+                                        const h = status?.naturalSize?.height;
+                                        if (status?.isLoaded && w > 0 && h > 0) {
+                                          const a = w / h;
+                                          if (!Number.isNaN(a) && a > 0 && Math.abs((videoAspect[videoKey] || 0) - a) > 0.01) {
+                                            setVideoAspect(prev => ({ ...prev, [videoKey]: a }));
+                                          }
+                                        }
+                                      }}
                                     />
                                   )}
-
-                                    {/* Ícone de Play Centralizado para indicar interatividade */}
-                                    <View style={{
-                                      position: 'absolute',
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      bottom: 0,
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                      zIndex: 1,
-                                      pointerEvents: 'none'
-                                    }}>
-                                      <View style={{
-                                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                                        borderRadius: 30,
-                                        width: 60,
-                                        height: 60,
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        borderWidth: 2,
-                                        borderColor: 'rgba(255, 255, 255, 0.5)'
-                                      }}>
-                                        <Ionicons name="play" size={30} color="#fff" style={{ marginLeft: 4 }} />
-                                      </View>
-                                    </View>
+                                    
 
                                     {/* Caption do vídeo */}
                                     {video.caption && (
                                       <View style={{
-                                        position: 'absolute',
-                                        bottom: 0,
                                         left: 0,
                                         right: 0,
                                         backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -814,7 +819,7 @@ const HomeScreen = ({ refreshKey = 0, setCurrentScreen }) => {
                                     item.is_liked || false, 
                                     item.like_count || 0
                                   )}
-                                  style={{ width: SCREEN_WIDTH, position: 'relative' }}
+                                  style={{ width: '100%', position: 'relative' }}
                                 >
                                   {imageLoading[`${item.id}-${index}`] && (
                                     <View style={{
@@ -831,18 +836,34 @@ const HomeScreen = ({ refreshKey = 0, setCurrentScreen }) => {
                                       <ActivityIndicator color={theme.primary || theme.icon} size="small" />
                                     </View>
                                   )}
-                                  <Image 
+                                  {(() => {
+                                    const imgKey = `${item.id}-${index}`;
+                                    const imgAspect = imageAspect[imgKey] || 16/9;
+                                    // Se ainda não temos a proporção, tentar obter
+                                    if (!imageAspect[imgKey] && imageUrl) {
+                                      try {
+                                        Image.getSize(imageUrl, (w, h) => {
+                                          if (w > 0 && h > 0) {
+                                            setImageAspect(prev => ({ ...prev, [imgKey]: w / h }));
+                                          }
+                                        }, () => {});
+                                      } catch {}
+                                    }
+                                    return (
+                                      <Image 
                                     source={{ uri: imageUrl }} 
                                     style={{ 
-                                      width: '100%', 
-                                      height: SCREEN_WIDTH * 1.25,
+                                      width: '100%',
+                                        aspectRatio: imgAspect,
                                       backgroundColor: theme.background
                                     }} 
                                     resizeMode="cover"
                                     onLoadStart={() => handleImageLoadStart(`${item.id}-${index}`)}
                                     onLoad={() => handleImageLoad(`${item.id}-${index}`)}
                                     onError={() => handleImageLoad(`${item.id}-${index}`)}
-                                  />
+                                      />
+                                    );
+                                  })()}
                                 </VideoTouchOverlay>
                               )}
                             />

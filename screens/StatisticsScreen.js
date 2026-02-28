@@ -759,102 +759,190 @@ const StatisticsScreen = ({ setCurrentScreen }) => {
               ) : null}
             </View>
             {/* Barras */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-evenly',
-              alignItems: 'flex-end',
-              height: '100%',
-              paddingHorizontal: 12,
-            }}>
-        {chartSchools.map((school, index) => {
-          const barColor = theme.primary || barColors[index % barColors.length];
-          const rawPerf = typeof school.performance === 'number' ? school.performance : 0;
-          const clampedPerf = Math.min(Math.max(rawPerf || 0, 0), yMax);
-          const barHeight = Math.max(10, (clampedPerf / yMax) * 100);
-          
-          return (
-            <View 
-              key={school.id} 
-              style={{
-                alignItems: 'center',
-                width: barWidth,
-                marginHorizontal: marginBetweenBars / 2,
-              }}
-            >
-              {/* Valor da porcentagem */}
-              <Text style={{
-                color: theme.text,
-                fontSize: 10,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                marginBottom: 3,
-                height: 16,
-                minWidth: 22,
-                backgroundColor: 'rgba(0,0,0,0.1)',
-                borderRadius: 5,
-                paddingHorizontal: 3,
-              }}>
-                {Math.round(clampedPerf)}%
-              </Text>
-              
-              {/* Container da barra */}
-              <View style={{ 
-                flex: 1, 
-                justifyContent: 'flex-end',
-                width: '100%',
-                paddingBottom: 2,
-              }}>
-                {/* Barra */}
-                <View 
-                  style={{
-                    backgroundColor: barColor,
-                    height: `${barHeight}%`,
-                    minHeight: 10,
-                    width: barInnerWidth,
-                    borderRadius: 4,
-                    alignSelf: 'center',
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 1.5,
-                    elevation: 2,
-                  }}
-                >
-                  {/* Gradiente sutil no topo da barra */}
-                  <View style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '30%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                    borderTopLeftRadius: 4,
-                    borderTopRightRadius: 4,
-                  }} />
-                </View>
-              </View>
-              
-              {/* Nome da escola */}
-              <Text 
-                style={{
-                  marginTop: 8,
-                  fontSize: 10,
-                  textAlign: 'center',
-                  height: 24,
-                  width: '100%',
-                  color: theme.text,
-                  fontWeight: '500',
-                  lineHeight: 11,
+            {n > 12 ? (
+              <RNScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  alignItems: 'flex-end',
+                  height: '100%',
+                  paddingHorizontal: 12,
                 }}
-                numberOfLines={2}
-                ellipsizeMode="tail"
+                style={{ height: '100%' }}
               >
-                {school.name}
-              </Text>
-            </View>
-          );
-        })}
-            </View>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
+                  {chartSchools.map((school, index) => {
+                    const barColor = theme.primary || barColors[index % barColors.length];
+                    const rawPerf = typeof school.performance === 'number' ? school.performance : 0;
+                    const clampedPerf = Math.min(Math.max(rawPerf || 0, 0), yMax);
+                    const barHeight = Math.max(10, (clampedPerf / yMax) * 100);
+                    return (
+                      <View 
+                        key={school.id} 
+                        style={{
+                          alignItems: 'center',
+                          width: barWidth,
+                          marginHorizontal: marginBetweenBars / 2,
+                        }}
+                      >
+                        <Text style={{
+                          color: theme.text,
+                          fontSize: 10,
+                          fontWeight: 'bold',
+                          textAlign: 'center',
+                          marginBottom: 3,
+                          height: 16,
+                          minWidth: 22,
+                          backgroundColor: 'rgba(0,0,0,0.1)',
+                          borderRadius: 5,
+                          paddingHorizontal: 3,
+                        }}>
+                          {Math.round(clampedPerf)}%
+                        </Text>
+                        <View style={{ 
+                          flex: 1, 
+                          justifyContent: 'flex-end',
+                          width: '100%',
+                          paddingBottom: 2,
+                        }}>
+                          <View 
+                            style={{
+                              backgroundColor: barColor,
+                              height: `${barHeight}%`,
+                              minHeight: 10,
+                              width: barInnerWidth,
+                              borderRadius: 4,
+                              alignSelf: 'center',
+                              shadowColor: '#000',
+                              shadowOffset: { width: 0, height: 1 },
+                              shadowOpacity: 0.2,
+                              shadowRadius: 1.5,
+                              elevation: 2,
+                            }}
+                          >
+                            <View style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              height: '30%',
+                              backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                              borderTopLeftRadius: 4,
+                              borderTopRightRadius: 4,
+                            }} />
+                          </View>
+                        </View>
+                        <Text 
+                          style={{
+                            marginTop: 8,
+                            fontSize: 10,
+                            textAlign: 'center',
+                            height: 24,
+                            width: '100%',
+                            color: theme.text,
+                            fontWeight: '500',
+                            lineHeight: 11,
+                          }}
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
+                        >
+                          {school.name}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </RNScrollView>
+            ) : (
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-evenly',
+                alignItems: 'flex-end',
+                height: '100%',
+                paddingHorizontal: 12,
+              }}>
+                {chartSchools.map((school, index) => {
+                  const barColor = theme.primary || barColors[index % barColors.length];
+                  const rawPerf = typeof school.performance === 'number' ? school.performance : 0;
+                  const clampedPerf = Math.min(Math.max(rawPerf || 0, 0), yMax);
+                  const barHeight = Math.max(10, (clampedPerf / yMax) * 100);
+                  return (
+                    <View 
+                      key={school.id} 
+                      style={{
+                        alignItems: 'center',
+                        width: barWidth,
+                        marginHorizontal: marginBetweenBars / 2,
+                      }}
+                    >
+                      <Text style={{
+                        color: theme.text,
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        marginBottom: 3,
+                        height: 16,
+                        minWidth: 22,
+                        backgroundColor: 'rgba(0,0,0,0.1)',
+                        borderRadius: 5,
+                        paddingHorizontal: 3,
+                      }}>
+                        {Math.round(clampedPerf)}%
+                      </Text>
+                      <View style={{ 
+                        flex: 1, 
+                        justifyContent: 'flex-end',
+                        width: '100%',
+                        paddingBottom: 2,
+                      }}>
+                        <View 
+                          style={{
+                            backgroundColor: barColor,
+                            height: `${barHeight}%`,
+                            minHeight: 10,
+                            width: barInnerWidth,
+                            borderRadius: 4,
+                            alignSelf: 'center',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 1 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 1.5,
+                            elevation: 2,
+                          }}
+                        >
+                          <View style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '30%',
+                            backgroundColor: 'rgba(255, 255, 255, 0.3)',
+                            borderTopLeftRadius: 4,
+                            borderTopRightRadius: 4,
+                          }} />
+                        </View>
+                      </View>
+                      <Text 
+                        style={{
+                          marginTop: 8,
+                          fontSize: 10,
+                          textAlign: 'center',
+                          height: 24,
+                          width: '100%',
+                          color: theme.text,
+                          fontWeight: '500',
+                          lineHeight: 11,
+                        }}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                      >
+                        {school.name}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
             {/* Eixo X label */}
             <View style={{ height: 22, justifyContent: 'center' }}>
               <Text style={{ color: theme.text, opacity: 0.6, fontSize: 11, textAlign: 'right' }}>Desempenho (%)</Text>
