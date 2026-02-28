@@ -675,14 +675,14 @@ const StatisticsScreen = ({ setCurrentScreen }) => {
     const barInnerWidth = n <= 4 ? 30 : n <= 8 ? 20 : 16;
     const marginBetweenBars = n <= 4 ? 6 : n <= 8 ? 4 : 2;
 
-    // Proporções e linhas de grade
-    const yMax = Math.max(
+    const computedYMax = Math.max(
       typeof chart?.y_axis_max === 'number' ? chart.y_axis_max : 100,
       ...chartSchools.map(s => {
         const v = typeof s.performance === 'number' ? s.performance : 0;
         return Math.min(100, Math.max(0, v || 0));
       })
     );
+    const yMax = computedYMax > 0 ? computedYMax : 100;
     const gridStep = yMax >= 100 ? 25 : Math.max(5, Math.round(yMax / 4));
     const gridLines = [];
     for (let v = yMax; v >= 0; v -= gridStep) gridLines.push(v);
