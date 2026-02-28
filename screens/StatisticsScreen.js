@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -197,6 +197,18 @@ const StatisticsScreen = ({ setCurrentScreen }) => {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [searchRoomCode, setSearchRoomCode] = useState('');
 
+  // Agrupar escolas por chart_id para reduzir custo de renderização na Web
+  const schoolsByChartId = useMemo(() => {
+    const map = new Map();
+    (schools || []).forEach((s) => {
+      const key = s?.chart_id;
+      if (key == null) return;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(s);
+    });
+    return map;
+  }, [schools]);
+
   // Atualizar os dados quando o componente for montado
   useEffect(() => {
     fetchSchoolCharts().catch(error => {
@@ -310,13 +322,13 @@ const StatisticsScreen = ({ setCurrentScreen }) => {
       Animated.timing(achievementAnim, {
         toValue: 1,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
       Animated.delay(2000),
       Animated.timing(achievementAnim, {
         toValue: 0,
         duration: 300,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== 'web',
       }),
     ]).start(() => {
       setShowAchievement(false);
@@ -1182,7 +1194,7 @@ const StatisticsScreen = ({ setCurrentScreen }) => {
                     </View>
                   ) : (
                     schoolCharts.map((chart) => {
-                      const chartSchools = getSchoolsByChartId(chart.id);
+                      const chartSchools = schoolsByChartId.get(chart.id) || [];
                       return (
                         <View key={chart.id} style={[styles.chartContainer, { backgroundColor: theme.card, borderRadius: 8, padding: 15, margin: 10, elevation: 2 }]}>
                           {chart.creator_profile ? (
@@ -1293,7 +1305,7 @@ const StatisticsScreen = ({ setCurrentScreen }) => {
                     </View>
                   ) : (
                     schoolCharts.map((chart) => {
-                      const chartSchools = getSchoolsByChartId(chart.id);
+                      const chartSchools = schoolsByChartId.get(chart.id) || [];
                       
                       return (
                         <View key={chart.id} style={[styles.chartSection, { 
@@ -1745,11 +1757,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chartContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 200,
-    marginBottom: 20,
+    width: '100%',
+    marginBottom: 20
   },
   barContainer: {
     alignItems: 'center',

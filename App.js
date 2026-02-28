@@ -789,9 +789,11 @@ function MainApp({ onLogout }) {
         flex: 1, 
         flexDirection: 'column', 
         backgroundColor: theme.background, 
+        width: '100%',
+        minHeight: Platform.OS === 'web' ? '100vh' : undefined,
         paddingTop: Platform.OS === 'web' ? 0 : -20,
-        marginLeft: Platform.OS === 'web' ? 56 : 0,
-        overflow: Platform.OS === 'web' ? 'auto' : 'visible'
+        paddingLeft: Platform.OS === 'web' ? 56 : 0,
+        overflow: 'visible'
       }}>
       
       {currentScreen === 'profile' && (
