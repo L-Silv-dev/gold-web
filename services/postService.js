@@ -1,5 +1,6 @@
 import { supabase } from '../utils/supabase';
 import * as FileSystem from 'expo-file-system';
+import { Platform } from 'react-native';
 
 const BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
 
@@ -556,47 +557,59 @@ export const createVideoPost = async (videos, description = '', hasAudio = true)
       else if (video.type?.startsWith('video/')) contentType = video.type;
 
       try {
-        // Obter informações do arquivo sem ler o conteúdo para memória
-        const fileInfo = await FileSystem.getInfoAsync(video.uri);
-        if (!fileInfo.exists) {
-           throw new Error(`Vídeo ${i + 1} não encontrado no dispositivo`);
-        }
-
-        const fileSizeMB = fileInfo.size / (1024 * 1024);
-        console.log(`Tamanho do vídeo ${i + 1}: ${fileSizeMB.toFixed(2)}MB`);
-        
-        // Obter token de sessão para autenticação
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) {
-           throw new Error('Sessão inválida ou expirada');
-        }
-
-        // Construir URL de upload do Supabase Storage
-        // A URL padrão é: https://<project_id>.supabase.co/storage/v1/object/<bucket>/<filename>
-        const projectUrl = supabase.supabaseUrl || 'https://hodzsckzancczwirtwcx.supabase.co';
-        const uploadUrl = `${projectUrl}/storage/v1/object/post-videos/${fileName}`;
-        
-        console.log(`Iniciando upload via FileSystem.uploadAsync para: ${fileName}`);
-
-        // Usar upload nativo do sistema de arquivos (evita carregar tudo na memória JS)
-        const response = await FileSystem.uploadAsync(uploadUrl, video.uri, {
-          httpMethod: 'POST',
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            'Content-Type': contentType,
-            'x-upsert': 'false', // Opcional, default false
-          },
-          uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-        });
-
-        if (response.status >= 200 && response.status < 300) {
-           // Upload bem sucedido, obter URL pública
-           const { data: { publicUrl } } = supabase.storage
+        if (Platform.OS === 'web') {
+          // Web: usar supabase.storage.upload com Blob direto
+          console.log(`Web upload: ${fileName}`);
+          const resp = await fetch(video.uri);
+          if (!resp.ok) throw new Error(`Falha ao ler vídeo (status ${resp.status})`);
+          const blob = await resp.blob();
+          const { error: uploadError } = await supabase.storage
+            .from('post-videos')
+            .upload(fileName, blob, { contentType, upsert: false });
+          if (uploadError) throw uploadError;
+          
+          const { data: { publicUrl } } = supabase.storage
             .from('post-videos')
             .getPublicUrl(fileName);
-
-            console.log(`Upload do vídeo ${i + 1} concluído com sucesso!`);
-
+          
+          return {
+            success: true,
+            url: publicUrl,
+            order: i,
+            caption: video.caption || null,
+            hasAudio: video.hasAudio !== undefined ? video.hasAudio : hasAudio,
+            duration: video.duration || null,
+            thumbnailUrl: video.thumbnailUrl || null,
+          };
+        } else {
+          // Nativo (iOS/Android): usar FileSystem.uploadAsync com token
+          const fileInfo = await FileSystem.getInfoAsync(video.uri);
+          if (!fileInfo.exists) {
+            throw new Error(`Vídeo ${i + 1} não encontrado no dispositivo`);
+          }
+          const fileSizeMB = fileInfo.size / (1024 * 1024);
+          console.log(`Tamanho do vídeo ${i + 1}: ${fileSizeMB.toFixed(2)}MB`);
+          
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.access_token) {
+            throw new Error('Sessão inválida ou expirada');
+          }
+          const projectUrl = supabase.supabaseUrl || 'https://hodzsckzancczwirtwcx.supabase.co';
+          const uploadUrl = `${projectUrl}/storage/v1/object/post-videos/${fileName}`;
+          console.log(`Iniciando upload via FileSystem.uploadAsync para: ${fileName}`);
+          const response = await FileSystem.uploadAsync(uploadUrl, video.uri, {
+            httpMethod: 'POST',
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              'Content-Type': contentType,
+              'x-upsert': 'false',
+            },
+            uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+          });
+          if (response.status >= 200 && response.status < 300) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('post-videos')
+              .getPublicUrl(fileName);
             return {
               success: true,
               url: publicUrl,
@@ -606,10 +619,10 @@ export const createVideoPost = async (videos, description = '', hasAudio = true)
               duration: video.duration || null,
               thumbnailUrl: video.thumbnailUrl || null,
             };
-        } else {
-           throw new Error(`Falha no upload (Status ${response.status}): ${response.body}`);
+          } else {
+            throw new Error(`Falha no upload (Status ${response.status}): ${response.body}`);
+          }
         }
-
       } catch (error) {
         console.error(`Erro no upload do vídeo ${i + 1}:`, error);
         return { success: false, error, index: i };

@@ -643,8 +643,9 @@ const HomeScreen = ({ refreshKey = 0, setCurrentScreen }) => {
                         if (videos.length === 0) return null;
 
                         return (
-                          <View>
+                          <View style={{ width: '100%' }}>
                             <FlatList
+                              style={{ width: '100%' }}
                               data={videos}
                               horizontal
                               pagingEnabled
@@ -805,8 +806,9 @@ const HomeScreen = ({ refreshKey = 0, setCurrentScreen }) => {
                         if (images.length === 0) return null;
 
                         return (
-                          <View>
+                          <View style={{ width: '100%' }}>
                             <FlatList
+                              style={{ width: '100%' }}
                               data={images}
                               horizontal
                               pagingEnabled
